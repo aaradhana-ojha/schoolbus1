@@ -287,14 +287,40 @@
 
     const map = new google.maps.Map(document.getElementById('map'), mapOptions);
 
-    // Add a marker for the location
-    new google.maps.Marker({
-      position: { lat: latitude, lng: longitude },
-      map: map,
-      title: 'Location'
-    });
-  }
-</script>
+     // Define a marker variable to be used later
+     let marker;
+
+     // Listen for changes in the Firestore data
+     collectionRef.onSnapshot((snapshot) => {
+       snapshot.docChanges().forEach((change) => {
+         if (change.type === 'added' || change.type === 'modified') {
+           const { lat, longitude } = change.doc.data();
+ 
+           // Update HTML elements with lat and longitude values
+           document.getElementById('lat').textContent = `Latitude: ${lat !== undefined ? lat : 'N/A'}`;
+           document.getElementById('longitude').textContent = `Longitude: ${longitude !== undefined ? longitude : 'N/A'}`;
+ 
+           // Remove the previous marker if it exists
+           if (marker) {
+             marker.setMap(null);
+           }
+ 
+           // Create a new marker for the location
+           marker = new google.maps.Marker({
+             position: { lat, lng: longitude },
+             map: map,
+             title: 'Location'
+           });
+ 
+           // Center the map to the new location
+           map.setCenter({ lat, lng: longitude });
+         }
+       });
+     }, (error) => {
+       console.error("Error getting documents: ", error);
+     });
+   }
+ </script>
 
 
 
